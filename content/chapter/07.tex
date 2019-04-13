@@ -24,7 +24,13 @@ The classification of Elasticsearch into the CAP Theorem is also not straightfor
 
 When setting up Elasticsearch with no further configuration, the system is \textbf{AP}. 
 
-This can be demonstrated by simulating a partitioning in a simple cluster consisting of 3 nodes as seen in figure A. Without configuration, each node is master-eligible. In addition each cluster has a property called “minimum_master_nodes”, which is set to one by default. This means that in the case of partitioning, each subcluster, even consisting of only one node, can choose itself as the new master. This is possible because it only needs to see one master-eligible node (itself) to conduct a election. As seen in Figure A, the original cluster is now split into two independent clusters, where each continues to accept and process requests. Therefore Elasticsearch is available, but giving up on consistency. A so called split brain scenario has arisen. This can only be repaired by shutting down the smaller part of the cluster, so that this nodes can rejoin the bigger cluster. In this process the additional data of the restarted nodes is lost.
+This can be demonstrated by simulating a partitioning in a simple cluster consisting of 3 nodes as seen in figure A.
+Without configuration, each node is master-eligible.
+In addition each cluster has a property called \texttt{minimum\_master\_nodes}, which is set to one by default.
+This means that in the case of partitioning, each subcluster, even consisting of only one node, can choose itself as the new master.
+This is possible because it only needs to see one master-eligible node (itself) to conduct a election.
+
+As seen in Figure A, the original cluster is now split into two independent clusters, where each continues to accept and process requests. Therefore Elasticsearch is available, but giving up on consistency. A so called split brain scenario has arisen. This can only be repaired by shutting down the smaller part of the cluster, so that this nodes can rejoin the bigger cluster. In this process the additional data of the restarted nodes is lost.
 
 % TODO: Figure
 
