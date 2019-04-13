@@ -1,10 +1,12 @@
-\chapter{Kapitel}
+\chapter{Introduction to Document Stores}
 
-\section{Punkt a}
+A document store or document-oriented database system, is a storage concept characterized by its schema-free organization of data [1]. 
+A document store can contain several collections, each of which contains one or more records/documents as shown in Figure 1 [2].
 
-At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua \autocite{Brewer.2012}. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat. 
+Unlike relational database systems, document stores allow a non-uniform structure of their records [1]. This means that each record can have individual columns [1]. Furthermore the data types of the different columns can be different from record to record [1]. 
+Contrary to relational databases, columns can have multiple values and data records can have a nested structure as shown in Figure 1 [1].
 
+Figure 2: Example of two document store records [5]
+Most document stores use notations, which can be easily processed by applications accessing the stored data [1]. The most common data notation is JavaScript Object Notation (JSON) [1] as it supports a key-value serialization of the data without predefining the type of the value [3].
+Important examples of document stores are MongoDB, Amazon DynamoDB, Couchbase and CouchDB [1]. Elasticsearch primarily is a search engine, which uses a distributed document store as its secondary database model [4].
 
-\section{Punkt b}
-
-At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, At accusam aliquyam diam diam dolore dolores duo eirmod eos erat, et nonumy sed tempor et et invidunt justo labore Stet clita ea et gubergren, kasd magna no rebum. sanctus sea sed takimata ut vero voluptua. est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat. 

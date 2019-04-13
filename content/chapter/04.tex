@@ -1,0 +1,23 @@
+\chapter{How is Full-Text Search Implemented Efficiently?}
+
+To efficiently implement full-text search, a technique called “inverted index” is used. In Elasticsearch, there are two key components used to implement this technique:
+\begin{itemize}
+    \item The inverted index itself
+    \item Analyzers
+\end{itemize}
+
+\section{Analyzers}
+According to the Elasticsearch reference, an Analyzer does the “process of converting text, like the body of any email, into tokens or terms which are added to the inverted index for searching”.
+
+Analysis can happen either at index time, when documents are inserted, or at search time. The process, however, is the same.
+
+An analyzer is made up of three building blocks:
+\begin{itemize}
+    \item Character filters
+    \item Tokenizer
+    \item Token filters
+\end{itemize}
+
+The character filter is used to transform a stream of characters into a sanitized stream of characters. This process can include changing Hindu-Arabic numerals into Arabic-Latin numerals or removing HTML tags like “<div>” from the stream. To do this, character filters can add, remove or change characters in the stream. Each analyzer can have none, one or multiple character filters.
+
+The sanitized character stream is then passed to the tokenizer. It splits the stream into a stream of tokens. Additionally, it records the startr
