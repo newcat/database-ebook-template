@@ -1,24 +1,27 @@
 %% Be aware of the * 
 
-\chapter*{Introduction (Chapter)}
+\chapter*{Introduction}
 
-\section*{Einleitung (Section)}
+A document store or document-oriented database system, is a storage concept characterized by its schema-free organization of data \autocite{solidit2019}. 
+A document store can contain several collections, each of which contains one or more records/documents as shown in figure \ref{fig:docstore1} \autocite{mongodb2019}.
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{DocumentStore1.png}
+    \caption{Document store architecture}
+    \label{fig:docstore1}
+\end{figure}
 
-\section*{Weiterer Unterpunkt (Section)}
+According to \autocite{solidit2019}, unlike relational database systems, document stores allow a non-uniform structure of their records. This means that each record can have individual columns. Furthermore the data types of the different columns can be different from record to record. 
 
-Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. 
+Contrary to relational databases, columns can have multiple values and data records can have a nested structure as shown in figure \ref{fig:docstore2}.
 
-\subsection*{Tieferer Unterpunkt (Subsection)}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.5\textwidth]{DocumentStore2.png}
+    \caption{Example of two document store records \autocite{buckenhofera.2019}}
+    \label{fig:docstore2}
+\end{figure}
 
-Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. 
-
-\subsection*{Gleich tiefer Unterpunkt}
-
-Nam liber tempor cum soluta nobis eleifend option congue nihil imperdiet doming id quod mazim placerat facer possim assum. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. 
-
-\subsubsection*{Noch viel tieferer Unterpunkt}
-
-Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis. 
-
+According to \autocite{solidit2019}, most document stores use notations, which can be easily processed by applications accessing the stored data. The most common data notation is JavaScript Object Notation (JSON) as it supports a key-value serialization of the data without predefining the type of the value \autocite{elastic2019}.
+Important examples of document stores are MongoDB, Amazon DynamoDB, Couchbase and CouchDB \autocite{solidit2019}. Elasticsearch primarily is a search engine, which uses a distributed document store as its secondary database model \autocite{solidit2019_02}.

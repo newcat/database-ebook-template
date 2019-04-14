@@ -1,142 +1,65 @@
-\chapter{How is Full-Text Search Implemented Efficiently?}
+\chapter{Fields of Application}
 
-To efficiently implement full-text search, a technique called “inverted index” is used. In Elasticsearch, there are two key components used to implement this technique:
-\begin{itemize}
-    \item The inverted index itself
-    \item Analyzers
-\end{itemize}
+\section{The Elastic Stack}
+\label{sec:elasticstack}
+The following chapter is based on the guide of \autocite{bermand.2019}. 
 
-\section{Analyzers}
-According to the Elasticsearch reference, an Analyzer does the "process of converting text, like the body of any email, into \textit{tokens} or \textit{terms} which are added to the inverted index for searching" \autocite{elasticsearch_anal} .
+The original ELK Stack by Elastic consisted of the three open source products Elasticsearch, Logstash and Kibana. As it nowadays also includes a collection of log shippers, called Beats, Elastic renamed it as the Elastic Stack.
 
-Analysis can happen either at index time, when documents are inserted, or at search time. The process, however, is the same \autocite{elasticsearch_anal}.
-
-An analyzer is made up of three building blocks \autocite{elasticsearch_anal2}:
-\begin{itemize}
-    \item Character filters
-    \item Tokenizer
-    \item Token filters
-\end{itemize}
-
-A character filter is used to transform a stream of characters into a sanitized stream of characters. This process can include changing Hindu-Arabic numerals into Arabic-Latin numerals or removing HTML tags like “<div>” from the stream. To do this, character filters can add, remove or change characters in the stream. Each analyzer can have none, one or multiple character filters \autocite{elasticsearch_anal2}.
-
-The sanitized character stream is then passed to the tokenizer. It splits the stream into a stream of tokens. Additionally, it records the start and end of each token \autocite{elasticsearch_anal2}.
-
-This stream of tokens is passed to the token filter(s). They can do the same operations like a character filter, but on a token level. The resulting token stream is used to build the inverted index. Similarly to a character filter, an analyzer can also have none, one or multiple token filters. \autocite{elasticsearch_anal2}.
-
-\subsection{Custom Analyzers}
-There are predefined analyzers, however, there is also the possibility to define custom analyzers. You can use the REST API to perform the creation of the custom analyzer \autocite{elasticsearch_analc}:
-
-\begin{minipage}[c]{0.95\textwidth}
-    \begin{lstlisting}
-PUT my_index
-{
-    "settings": {
-        "analysis": {
-            "analyzer": {
-                "my_custom_analyzer": {
-                    "type": "custom", 
-                    "tokenizer": "standard",
-                    "char_filter": [
-                        "html_strip"
-                    ],
-                    "filter": [
-                        "lowercase",
-                        "asciifolding"
-                    ]
-                }
-            }
-        }
-    }
-}
-    \end{lstlisting}
-\end{minipage}
-
-\section{Inverted Index}
-This and the following section reference \autocite{elasticsearch_iindex} unless cited otherwise.
-
-To allow for efficient full-text search, Elasticsearch creates an inverted index for every field in a document.
-
-The rows of the inverted index are made up of the collection of all words (tokens) in the field of the document. This is done for all documents. The columns are the documents id's.
-
-For example, for two documents \texttt{Doc\_1} and \texttt{Doc\_2} with these \texttt{content} fields:
-\begin{itemize}
-    \item \textbf{Doc\_1}: "The quick brown fox jumped over the lazy dog"
-    \item \textbf{Doc\_2}: "Quick brown foxes leap over lazy dogs in summer"
-\end{itemize}
-
-the inverted index shown in table \ref{tab:iindex1} will be created for the \texttt{content} field.
-
-\begin{table}
+\begin{figure}[H]
     \centering
-    \begin{tabular}{ | l | c | c | }
-        \hline
-        Term    & Doc\_1 & Doc\_2 \\ \hline
-        \hline
-        Quick   &       &   X   \\
-        The     &   X   &       \\
-        brown   &   X   &   X   \\
-        dog     &   X   &       \\
-        dogs    &       &   X   \\
-        fox     &   X   &       \\
-        foxes   &       &   X   \\
-        in      &       &   X   \\
-        jumped  &   X   &       \\
-        lazy    &   X   &   X   \\
-        leap    &       &   X   \\
-        over    &   X   &   X   \\
-        quick   &   X   &       \\
-        summer  &       &   X   \\
-        the     &   X   &       \\
-        \hline
-    \end{tabular}
-    \caption{Inverted index example \autocite{elasticsearch_iindex}}
-    \label{tab:iindex1}
-\end{table}
+    \includegraphics[width=1\textwidth]{ElasticStack.png}
+    \caption{Elastic Stack overview \autocite{bermand.2019}}
+    \label{fig:elasticstack}
+\end{figure}
+  
+Figure \ref{fig:elasticstack} gives an overview on the tools included in the Elastic Stack and their tasks.
 
-To perform the query "quick brown" (with an or operator), only the rows with the search terms will be selected. This can be seen in table \ref{tab:iindex2}.
+The different Beats collect logs or metrics from various sources. As these lightweight tools are written in Go, they are small as well as resource-efficient and require no dependencies.
 
-\begin{table}
+Logstash can handle large amounts of log data provided by the Beats. The product processes the log messages and sends them to a defined storage destination in Elasticsearch.
+
+Elasticsearch is a NoSQL document-oriented database, which provides many search capabilities and features. Its search and analytics engine is based on Apache Lucene (see chapter 3). It is responsible for indexing and storing the information received from Logstash. Elasticsearch offers an extensive RESTful API, which allows users to perform many different search queries on the data. 
+
+Kibana provides a browser-based user interface, which allows users to easily perform search queries on the data stored in Elasticsearch. Furthermore, it enables the users to analyze their data and to visualize it using the extensive graphical capabilities of Kibana.
+
+Overall the Elastic Stack aims to provide a reliable and scalable way to aggregate data from multiple sources, to store and to analyze it.
+
+\section{Use Cases of the Elastic Stack}
+The Elasticsearch website lists several use cases, which have been realized in different companies using one or more products from the Elastic Stack \autocite{elastic2019_02}. 
+
+\begin{figure}[H]
     \centering
-    \begin{tabular}{ | l | c | c | }
-        \hline
-        Term    & Doc\_1 & Doc\_2 \\ \hline
-        \hline
-        brown   &   X   &   X   \\
-        quick   &   X   &       \\
-        \hline
-        Total   &   2   &   1   \\
-        \hline
-    \end{tabular}
-    \caption{Search in the inverted index \autocite{elasticsearch_iindex}}
-    \label{tab:iindex2}
-\end{table}
+    \includegraphics[width=0.5\textwidth]{UseCasesElasticStack.png}
+    \caption{Overview on the different Elastic Stack use cases}
+    \label{fig:estackusecases}
+\end{figure}
 
-\section{Analyzers and Inverted Indices}
-As can be seen in table \ref{tab:iindex1}, the data is quite sparse, meaning there are a lot of tokens that are only referenced in one of the documents. At the same time, there are redundancies, like "quick" and "Quick", which are the same word but with different capitalization. Similarly, "dog" and "dogs" as well as "fox" and "foxes" are just singular/plural pairs. Lastly, the words "jumped" and "leap" have a similar meaning and can also be merged into a single word.
+As shown in figure \ref{fig:estackusecases}, the two main fields of application of the Elastic Stack are search and analytics, which can be divided into several subcategories. Many customers implementing the Elastic Stack, combine two or more of the subcategories \autocite{elastic2019_02}. Often, companies implement a search and an analytics use case. For example, they want to provide a nearly real-time search on their website as well as monitoring their IT systems to detect security breaches. 
 
-This is where analyzers come into play: The predefined "english" analyzer will merge those redundancies into a single token, as can be seen in table \ref{tab:iindex3}.
+In the following, an example implementation for each use case subcategory will be shortly described. Details on each use case can be found on the Elasticsearch website.
 
-\begin{table}
-    \centering
-    \begin{tabular}{ | l | c | c | }
-        \hline
-        Term    & Doc\_1 & Doc\_2 \\ \hline
-        \hline
-        brown   &   X   &  X  \\
-        dog     &   X   &  X  \\
-        fox     &   X   &  X  \\
-        in      &       &  X  \\
-        jump    &   X   &  X  \\
-        lazy    &   X   &  X  \\
-        over    &   X   &  X  \\
-        quick   &   X   &  X  \\
-        summer  &       &  X  \\
-        the     &   X   &  X  \\
-        \hline
-    \end{tabular}
-    \caption{Inverted index with analyzer \autocite{elasticsearch_iindex}}
-    \label{tab:iindex3}
-\end{table}
+\begin{enumerate}
+    
+    \item \underline{Application Search} \autocite{slevat.2018} \\
+    The banking company Rabobank created an application that allows customers to search through their financial transactions. By using the Elastic Stack, the company was able to drastically improve the search performance.
+    
+    \item \underline{Site Search} \autocite{elastic2019_03} \\
+    The technology blog network Engadget uses the Elastic Stack to provide a news article search functionality for its users. 
 
-This analysis must also be applied to the query; for example the word "quick" would not be found otherwise as it is not capitalized in the inverted index.
+    \item \underline{Enterprise Search} \autocite{elastic2019_04} \\
+    The aeronautics manufacturer Airbus created an enterprise search system to provide authorized internal and external users access to technical aircraft documents.  
+
+    \item \underline{Business Analytics} \autocite{elastic2019_05} \\
+    The car rental company car2go uses the Elastic Stack to monitor and visualize the connectivity and condition of the vehicles, position data, reservations and payment. Furthermore, the realized system allows the company to analyze fraud cases.
+
+    \item \underline{Metrics Analytics} \autocite{elastic2019_06} \\
+    The game developer Blizzard Entertainment implemented an analytics system using the Elastic Stack to identify potential problems quickly and to reduce the reaction time if a problem occurs. By monitoring important metrics, the company gains insights into which game features are working best and which features have to be improved.
+
+    \item \underline{Operational Log Analytics} \autocite{elastic2019_07} \\
+    The healthcare IT supplier Cerner uses the Elastic Stack to index and analyze events in near real-time and to send out alerts to the responsible emergency team in case of a severe event. This allows the company to increase the stability and reliability of its IT infrastructure. 
+    
+    \item \underline{Security Analytics} \autocite{paquettem.2018} \\
+    A group of five big US universities, led by the Indiana University, uses an Elastic Stack solution that ingests, correlates and analyzes vast quantities of information to detect security breaches and cyber threats in their IT systems. This enables the universities to protect their students, faculties and staff from cyber attacks.
+
+\end{enumerate}

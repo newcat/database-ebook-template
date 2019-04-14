@@ -1,156 +1,63 @@
-\chapter{Implementation and Experience with the Database System}
+\chapter{CAP Theorem}
 
-\section{Installation}
-The easiest way to use Elasticsearch is to use a hosted cloud instance. Providers like IBM \autocite{ibm}, Microsoft \autocite{microsoft}, Amazon \autocite{amazon} and others all provide hosted Elasticsearch instances.
+\section{Scalability of Elasticsearch}
+A single node setup as seen in figure \ref{fig:singlenodesetup} corresponds to a cluster with only one node \autocite{elastic2019_10}. When storing an index in Elasticsearch the data gets split into shards. In figure \ref{fig:singlenodesetup} the only existing node contains 3 shards, where each shard is a primary shard containing the original data. In figure \ref{fig:clustersetup} the same data gets stored in an Elasticsearch cluster with three nodes. Now each primary shard gets duplicated with a replica shard. The shards get distributed between the nodes to balance the load of each node and reduce the risk of losing data should one node get destroyed \autocite{elastic2019_10}.
 
-If you want to install it yourself, the easiest way is to use the prebuilt Docker image. When you have Docker installed on your machine, you can simply type
-\begin{minipage}[c]{0.95\textwidth}
-    \begin{lstlisting}
-docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.0.0
-    \end{lstlisting}
-\end{minipage}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.33\textwidth]{image3.png}
+    \caption{Single node setup \autocite{elastic2019_09}}
+    \label{fig:singlenodesetup}
+\end{figure}
 
-into the console to get a single Elasticsearch node up and running \autocite{dockerhub}.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{image12.png}
+    \caption{Cluster setup \autocite{elastic2019_09}}
+    \label{fig:clustersetup}
+\end{figure}
 
-\section{CRUD Operations}
-Elasticsearch provides a comprehensive REST API to interact with the cluster \autocite{elastic2019_08}. This REST API can be used to manage the cluster itself, as well as to perform CRUD (Create, Read, Update, and Delete) operations and more complex search operations \autocite{elastic2019_08}. To define the queries Elasticsearch offers a full Query DSL (Domain Specific Language) based on JSON \autocite{elastic2019_08}.
+The size of the shards can be determined when creating the index. Choosing a suitable shard size is important to get the highest performance \autocite{dahlqvistc2018}. For example, if the whole data is in one big shard, a search query will take a comparatively long duration \autocite{dahlqvistc2018}. If the data gets divided over multiple shards, the same query can be applied to each shard and will be faster, because the query can run simultaneously on each shard. In the end, however, the results still have to be aggregated. This means having too many very small shards will increase the duration again \autocite{dahlqvistc2018}. Elasticsearch itself does not provide a fixed value for the size of a shard, they rather give some tips, like to keep the average shard size between 20GB and 40GB, but they recommend to always test what works best for each setup \autocite{dahlqvistc2018}.
 
-In the following, the syntax of the queries is shown using the basic CRUD operations as examples:
+Each Elasticsearch node can serve one or more purposes \autocite{elastic2019_10}. What purpose a node should serve can be set in the configuration file of each node \autocite{elastic2019_10}. In a single node setup this is not relevant, because the only existing node needs to fulfill every purpose. But in a big cluster it can make sense to have nodes dedicated to a single functionality to make sure that they are not strained too much \autocite{elastic2019_10}.
 
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Creating an index}
-    (corresponds to a table in a relational databases)
-    \begin{lstlisting}
-PUT /test
-{
-    "settings": {
-        "number_of_shards": 1
-    },
-    "mappings": {
-        "_doc": {
-            "properties": {
-                "name": { "type": "text" }
-            }
-        }
-    }
-}
-    \end{lstlisting}
-\end{minipage}
+The different node types are:
+\begin{itemize}
+    \item \textbf{Master-eligible node} \\
+    This node can be elected as the master, which controls the cluster \autocite{elastic2019_10}.
+    \item \textbf{Data node} \\
+    A data node stores the data and performs CRUD or search operations \autocite{elastic2019_10}.
+    \item \textbf{Ingest node} \\
+    Ingest nodes are used to apply a pipeline (serie of transformations or enrichments) to a document before indexing \autocite{elastic2019_10}.
+    \item \textbf{Coordinating node} \\
+    A request gets taken over by one node, that forwards the requests to the data nodes and then gathers the results. Each node can implicitly coordinate, but by disabling all other functionalities for a node, this node becomes a dedicated coordinator node \autocite{elastic2019_10}.
+\end{itemize}
 
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Inserting a document}
-    \begin{lstlisting}
-PUT /test/_doc/1
-{
-    "name": "Max"
-}
-    \end{lstlisting}
-\end{minipage}
+\section{Classification in the CAP Theorem}
+The CAP Theorem is used to classify NoSQL databases, respectively distributed systems into Availability, Consistency and Partition Tolerance. According to the CAP theorem, each application can fulfill only two of the three mentioned attributes. Even if the classification is not so clear anymore since the theorem was set up \autocite{brewere2012}, it offers a possibility to compare different NoSQL databases.
+ 
+The classification of Elasticsearch into the CAP Theorem is also not straightforward. On the Internet people provide answers for all the different combinations possible in the CAP Theorem \autocites{longn2014}{synhershkoi2014}. Elasticsearch itself provides no official statement on how they would classify their product. But based on the technical functionality of Elasticsearch and the example scenarios from \autocite{nathanir2019}, the following classification can be made:
 
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Reading the document}
-    \begin{lstlisting}
-GET /test/_doc/1
-    \end{lstlisting}
-\end{minipage}
+When setting up Elasticsearch with no further configuration, the system is \textbf{AP}. 
 
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Updating the document}
-    \begin{lstlisting}
-POST /test/_doc/1/_update
-{
-    "doc": { "name": "Moritz" }
-}
-    \end{lstlisting}
-\end{minipage}
+This can be demonstrated by simulating a partitioning in a simple cluster consisting of 3 nodes as seen in figure \ref{fig:splitbrain}. Without configuration, each node is master-eligible. In addition each cluster has a property called \texttt{minimum\_master\_nodes}, which is set to one by default. This means that in the case of partitioning, each subcluster, even consisting of only one node, can choose itself as the new master. This is possible because it only needs to see one master-eligible node (itself) to conduct a election. As seen in figure \ref{fig:splitbrain}, the original cluster is now split into two independent clusters, where each continues to accept and process requests. Therefore Elasticsearch is available, but giving up on consistency. A so called split brain scenario has arisen. This can only be repaired by shutting down the smaller part of the cluster, so that this nodes can rejoin the bigger cluster. In this process the additional data of the restarted nodes is lost.
 
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Deleting the document}
-    \begin{lstlisting}
-DELETE /test/_doc/1
-    \end{lstlisting}
-\end{minipage}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{splitbrain.png}
+    \caption{Split brain scenario \autocite{nathanir2019}}
+    \label{fig:splitbrain}
+\end{figure}
 
+After a configuration of the cluster (recommended by Elasticsearch) the system can be \textbf{CP}.
 
-\section{Query Syntax}
+As already mentioned, there is a property called \texttt{minimum\_master\_nodes}. By setting this property to $(n/2)+1$, with $n$ being the number of master-eligible nodes, the scenario of a split brain can be prevented. Figure 7 shows the same cluster consisting of three nodes simulating a partitioning. The difference is that \texttt{minimum\_master\_nodes} is set to two. The isolated node therefore cannot select itself as master, since it does not see the required 2 nodes. Only the larger part of the cluster, consisting of the required 2 nodes, continues to accept and process requests. So in this case Elasticsearch gives up on availability and instead preserves consistency. After the partitioning is resolved, the single node will automatically rejoin the bigger cluster.
 
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Basic query}
-    \begin{lstlisting}
-GET /person/_search
-{
-    "query": { "match": { "sex": "male" } },
-    "sort": [{ "name": "desc" }],
-    "_source": ["name", "age"]
-}
-    \end{lstlisting}
-\end{minipage}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\textwidth]{nonsplitbrain.png}
+    \caption{Non split brain scenario \autocite{nathanir2019}}
+    \label{fig:nonsplitbrain}
+\end{figure}
 
-This query searches all documents in an index called \texttt{person}. It returns the fields \texttt{name} and \texttt{age} of all documents where \texttt{sex} equals \texttt{male}, ordered descending by the field \texttt{name}.
-
-\bigskip
-
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{\texttt{or} Operator}
-    \begin{lstlisting}
-GET /wiki/_search
-{
-    "query": {
-        "match": {
-            "abstract": {
-                "query": "database search",
-                "operator": "or"
-            }
-        }
-    }
-}
-    \end{lstlisting}
-\end{minipage}
-
-This query is a slightly more advanced query, as it returns all documents, whose \texttt{abstract} field contains the words \texttt{database} or \texttt{search} (inclusive or).
-
-\bigskip
-
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Fuzzy search}
-    \begin{lstlisting}
-GET /wiki/_search
-{
-    "query": {
-        "match": {
-            "title": {
-                "query": "Elasticsearcch",
-                "fuzziness": "AUTO"
-            }
-        }
-    }
-}
-    \end{lstlisting}
-\end{minipage}
-
-Fuzzy searching will instruct Elasticsearch to also match similar words in the query. In this example, Elasticsearch is accidentally written with two 'c', however, Elasticsearch will also return the document with the title \texttt{Elasticsearch}.
-
-\bigskip
-
-\begin{minipage}[c]{0.95\textwidth}
-    \textbf{Wildcards}
-    \begin{lstlisting}
-GET /wiki/_search
-{
-    "query": {
-        "wildcard": {
-            "title": "m*db"
-        }
-    }
-}
-    \end{lstlisting}
-\end{minipage}
-
-In this case, the query will find all documents, whose \texttt{title} field starts with \texttt{m} and ends with \texttt{db}. In between these can be an arbitrary amount of characters, as denoted by the star. Use a question mark to only match a single character.
-
-There are many and more complex queries possible in Elasticsearch, however, for the brevity of this e-book they are not included here. A much more detailed explanation for each query can be found in the Elasticsearch API Reference.
-
-\section{Experiences}
-Our experiences with Elasticsearch have been good overall. Due to having a simple REST API, the database can be accessed from almost every programming language. For most languages, though, there is an official library, simplifying the use even more.
-
-Due to the tight integration with the Elastic Stack, other use-cases like logging/monitoring and data visualization are also easily realizable.
+To conclude: Elasticsearch cannot be placed explicitly in the CAP theorem, because depending on the configuration, availability or consistency can be abandoned.

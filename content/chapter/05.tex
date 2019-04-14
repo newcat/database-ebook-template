@@ -1,65 +1,156 @@
-\chapter{Fields of Application}
+\chapter{Implementation and Experience with the Database System}
 
-\section{The Elastic Stack}
-\label{sec:elasticstack}
-The following chapter is based on the guide of \autocite{bermand.2019}. 
+\section{Installation}
+The easiest way to use Elasticsearch is to use a hosted cloud instance. Providers like IBM \autocite{ibm}, Microsoft \autocite{microsoft}, Amazon \autocite{amazon} and others all provide hosted Elasticsearch instances.
 
-The original ELK Stack by Elastic consisted of the three open source products Elasticsearch, Logstash and Kibana. As it nowadays also includes a collection of log shippers, called Beats, Elastic renamed it as the Elastic Stack.
+If you want to install it yourself, the easiest way is to use the prebuilt Docker image. When you have Docker installed on your machine, you can simply type
+\begin{minipage}[c]{0.95\textwidth}
+    \begin{lstlisting}
+docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.0.0
+    \end{lstlisting}
+\end{minipage}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=1\textwidth]{ElasticStack.png}
-    \caption{Elastic Stack overview \autocite{bermand.2019}}
-    \label{fig:elasticstack}
-\end{figure}
-  
-Figure \ref{fig:elasticstack} gives an overview on the tools included in the Elastic Stack and their tasks.
+into the console to get a single Elasticsearch node up and running \autocite{dockerhub}.
 
-The different Beats collect logs or metrics from various sources. As these lightweight tools are written in Go, they are small as well as resource-efficient and require no dependencies.
+\section{CRUD Operations}
+Elasticsearch provides a comprehensive REST API to interact with the cluster \autocite{elastic2019_08}. This REST API can be used to manage the cluster itself, as well as to perform CRUD (Create, Read, Update, and Delete) operations and more complex search operations \autocite{elastic2019_08}. To define the queries Elasticsearch offers a full Query DSL (Domain Specific Language) based on JSON \autocite{elastic2019_08}.
 
-Logstash can handle large amounts of log data provided by the Beats. The product processes the log messages and sends them to a defined storage destination in Elasticsearch.
+In the following, the syntax of the queries is shown using the basic CRUD operations as examples:
 
-Elasticsearch is a NoSQL document-oriented database, which provides many search capabilities and features. Its search and analytics engine is based on Apache Lucene (see chapter 3). It is responsible for indexing and storing the information received from Logstash. Elasticsearch offers an extensive RESTful API, which allows users to perform many different search queries on the data. 
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Creating an index}
+    (corresponds to a table in a relational databases)
+    \begin{lstlisting}
+PUT /test
+{
+    "settings": {
+        "number_of_shards": 1
+    },
+    "mappings": {
+        "_doc": {
+            "properties": {
+                "name": { "type": "text" }
+            }
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
 
-Kibana provides a browser-based user interface, which allows users to easily perform search queries on the data stored in Elasticsearch. Furthermore, it enables the users to analyze their data and to visualize it using the extensive graphical capabilities of Kibana.
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Inserting a document}
+    \begin{lstlisting}
+PUT /test/_doc/1
+{
+    "name": "Max"
+}
+    \end{lstlisting}
+\end{minipage}
 
-Overall the Elastic Stack aims to provide a reliable and scalable way to aggregate data from multiple sources, to store and to analyze it.
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Reading the document}
+    \begin{lstlisting}
+GET /test/_doc/1
+    \end{lstlisting}
+\end{minipage}
 
-\section{Use Cases of the Elastic Stack}
-The Elasticsearch website lists several use cases, which have been realized in different companies using one or more products from the Elastic Stack \autocite{elastic2019_02}. 
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Updating the document}
+    \begin{lstlisting}
+POST /test/_doc/1/_update
+{
+    "doc": { "name": "Moritz" }
+}
+    \end{lstlisting}
+\end{minipage}
 
-\begin{figure}
-    \centering
-    \includegraphics[width=0.5\textwidth]{UseCasesElasticStack.png}
-    \caption{Overview on the different Elastic Stack use cases}
-    \label{fig:estackusecases}
-\end{figure}
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Deleting the document}
+    \begin{lstlisting}
+DELETE /test/_doc/1
+    \end{lstlisting}
+\end{minipage}
 
-As shown in figure \ref{fig:estackusecases}, the two main fields of application of the Elastic Stack are search and analytics, which can be divided into several subcategories. Many customers implementing the Elastic Stack, combine two or more of the subcategories \autocite{elastic2019_02}. Often, companies implement a search and an analytics use case. For example, they want to provide a nearly real-time search on their website as well as monitoring their IT systems to detect security breaches. 
 
-In the following, an example implementation for each use case subcategory will be shortly described. Details on each use case can be found on the Elasticsearch website.
+\section{Query Syntax}
 
-\begin{enumerate}
-    
-    \item \underline{Application Search} \autocite{slevat.2018} \\
-    The banking company Rabobank created an application that allows customers to search through their financial transactions. By using the Elastic Stack, the company was able to drastically improve the search performance.
-    
-    \item \underline{Site Search} \autocite{elastic2019_03} \\
-    The technology blog network Engadget uses the Elastic Stack to provide a news article search functionality for its users. 
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Basic query}
+    \begin{lstlisting}
+GET /person/_search
+{
+    "query": { "match": { "sex": "male" } },
+    "sort": [{ "name": "desc" }],
+    "_source": ["name", "age"]
+}
+    \end{lstlisting}
+\end{minipage}
 
-    \item \underline{Enterprise Search} \autocite{elastic2019_04} \\
-    The aeronautics manufacturer Airbus created an enterprise search system to provide authorized internal and external users access to technical aircraft documents.  
+This query searches all documents in an index called \texttt{person}. It returns the fields \texttt{name} and \texttt{age} of all documents where \texttt{sex} equals \texttt{male}, ordered descending by the field \texttt{name}.
 
-    \item \underline{Business Analytics} \autocite{elastic2019_05} \\
-    The car rental company car2go uses the Elastic Stack to monitor and visualize the connectivity and condition of the vehicles, position data, reservations and payment. Furthermore, the realized system allows the company to analyze fraud cases.
+\bigskip
 
-    \item \underline{Metrics Analytics} \autocite{elastic2019_06} \\
-    The game developer Blizzard Entertainment implemented an analytics system using the Elastic Stack to identify potential problems quickly and to reduce the reaction time if a problem occurs. By monitoring important metrics, the company gains insights into which game features are working best and which features have to be improved.
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{\texttt{or} Operator}
+    \begin{lstlisting}
+GET /wiki/_search
+{
+    "query": {
+        "match": {
+            "abstract": {
+                "query": "database search",
+                "operator": "or"
+            }
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
 
-    \item \underline{Operational Log Analytics} \autocite{elastic2019_07} \\
-    The healthcare IT supplier Cerner uses the Elastic Stack to index and analyze events in near real-time and to send out alerts to the responsible emergency team in case of a severe event. This allows the company to increase the stability and reliability of its IT infrastructure. 
-    
-    \item \underline{Security Analytics} \autocite{paquettem.2018} \\
-    A group of five big US universities, led by the Indiana University, uses an Elastic Stack solution that ingests, correlates and analyzes vast quantities of information to detect security breaches and cyber threats in their IT systems. This enables the universities to protect their students, faculties and staff from cyber attacks.
+This query is a slightly more advanced query, as it returns all documents, whose \texttt{abstract} field contains the words \texttt{database} or \texttt{search} (inclusive or).
 
-\end{enumerate}
+\bigskip
+
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Fuzzy search}
+    \begin{lstlisting}
+GET /wiki/_search
+{
+    "query": {
+        "match": {
+            "title": {
+                "query": "Elasticsearcch",
+                "fuzziness": "AUTO"
+            }
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
+
+Fuzzy searching will instruct Elasticsearch to also match similar words in the query. In this example, Elasticsearch is accidentally written with two 'c', however, Elasticsearch will also return the document with the title \texttt{Elasticsearch}.
+
+\bigskip
+
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Wildcards}
+    \begin{lstlisting}
+GET /wiki/_search
+{
+    "query": {
+        "wildcard": {
+            "title": "m*db"
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
+
+In this case, the query will find all documents, whose \texttt{title} field starts with \texttt{m} and ends with \texttt{db}. In between these can be an arbitrary amount of characters, as denoted by the star. Use a question mark to only match a single character.
+
+There are many and more complex queries possible in Elasticsearch, however, for the brevity of this e-book they are not included here. A much more detailed explanation for each query can be found in the Elasticsearch API Reference.
+
+\section{Experiences}
+Our experiences with Elasticsearch have been good overall. Due to having a simple REST API, the database can be accessed from almost every programming language. For most languages, though, there is an official library, simplifying the use even more.
+
+Due to the tight integration with the Elastic Stack, other use-cases like logging/monitoring and data visualization are also easily realizable.
