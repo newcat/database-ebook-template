@@ -49,7 +49,7 @@ This can be demonstrated by simulating a partitioning in a simple cluster consis
     \label{fig:splitbrain}
 \end{figure}
 
-After a configuration of the cluster (recommended by Elasticsearch) the system can be CP.
+After a configuration of the cluster (recommended by Elasticsearch) the system can be \textbf{CP}.
 
 As already mentioned, there is a property called \texttt{minimum\_master\_nodes}. By setting this property to $(n/2)+1$, with $n$ being the number of master-eligible nodes, the scenario of a split brain can be prevented. Figure 7 shows the same cluster consisting of three nodes simulating a partitioning. The difference is that \texttt{minimum\_master\_nodes} is set to two. The isolated node therefore cannot select itself as master, since it does not see the required 2 nodes. Only the larger part of the cluster, consisting of the required 2 nodes, continues to accept and process requests. So in this case Elasticsearch gives up on availability and instead preserves consistency. After the partitioning is resolved, the single node will automatically rejoin the bigger cluster.
 

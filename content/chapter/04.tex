@@ -1,5 +1,5 @@
 \chapter{How is Full-Text Search Implemented Efficiently?}
-% TODO
+
 To efficiently implement full-text search, a technique called “inverted index” is used. In Elasticsearch, there are two key components used to implement this technique:
 \begin{itemize}
     \item The inverted index itself
@@ -7,17 +7,136 @@ To efficiently implement full-text search, a technique called “inverted index�
 \end{itemize}
 
 \section{Analyzers}
-According to the Elasticsearch reference, an Analyzer does the “process of converting text, like the body of any email, into tokens or terms which are added to the inverted index for searching”.
+According to the Elasticsearch reference, an Analyzer does the "process of converting text, like the body of any email, into \textit{tokens} or \textit{terms} which are added to the inverted index for searching" \autocite{elasticsearch_anal} .
 
-Analysis can happen either at index time, when documents are inserted, or at search time. The process, however, is the same.
+Analysis can happen either at index time, when documents are inserted, or at search time. The process, however, is the same \autocite{elasticsearch_anal}.
 
-An analyzer is made up of three building blocks:
+An analyzer is made up of three building blocks \autocite{elasticsearch_anal2}:
 \begin{itemize}
     \item Character filters
     \item Tokenizer
     \item Token filters
 \end{itemize}
 
-The character filter is used to transform a stream of characters into a sanitized stream of characters. This process can include changing Hindu-Arabic numerals into Arabic-Latin numerals or removing HTML tags like “<div>” from the stream. To do this, character filters can add, remove or change characters in the stream. Each analyzer can have none, one or multiple character filters.
+A character filter is used to transform a stream of characters into a sanitized stream of characters. This process can include changing Hindu-Arabic numerals into Arabic-Latin numerals or removing HTML tags like “<div>” from the stream. To do this, character filters can add, remove or change characters in the stream. Each analyzer can have none, one or multiple character filters \autocite{elasticsearch_anal2}.
 
-The sanitized character stream is then passed to the tokenizer. It splits the stream into a stream of tokens. Additionally, it records the startr
+The sanitized character stream is then passed to the tokenizer. It splits the stream into a stream of tokens. Additionally, it records the start and end of each token \autocite{elasticsearch_anal2}.
+
+This stream of tokens is passed to the token filter(s). They can do the same operations like a character filter, but on a token level. The resulting token stream is used to build the inverted index. Similarly to a character filter, an analyzer can also have none, one or multiple token filters. \autocite{elasticsearch_anal2}.
+
+\subsection{Custom Analyzers}
+There are predefined analyzers, however, there is also the possibility to define custom analyzers. You can use the REST API to perform the creation of the custom analyzer \autocite{elasticsearch_analc}:
+
+\begin{minipage}[c]{0.95\textwidth}
+    \begin{lstlisting}
+PUT my_index
+{
+    "settings": {
+        "analysis": {
+            "analyzer": {
+                "my_custom_analyzer": {
+                    "type": "custom", 
+                    "tokenizer": "standard",
+                    "char_filter": [
+                        "html_strip"
+                    ],
+                    "filter": [
+                        "lowercase",
+                        "asciifolding"
+                    ]
+                }
+            }
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
+
+\section{Inverted Index}
+This and the following section reference \autocite{elasticsearch_iindex} unless cited otherwise.
+
+To allow for efficient full-text search, Elasticsearch creates an inverted index for every field in a document.
+
+The rows of the inverted index are made up of the collection of all words (tokens) in the field of the document. This is done for all documents. The columns are the documents id's.
+
+For example, for two documents \texttt{Doc\_1} and \texttt{Doc\_2} with these \texttt{content} fields:
+\begin{itemize}
+    \item \textbf{Doc\_1}: "The quick brown fox jumped over the lazy dog"
+    \item \textbf{Doc\_2}: "Quick brown foxes leap over lazy dogs in summer"
+\end{itemize}
+
+the inverted index shown in table \ref{tab:iindex1} will be created for the \texttt{content} field.
+
+\begin{table}
+    \centering
+    \begin{tabular}{ | l | c | c | }
+        \hline
+        Term    & Doc\_1 & Doc\_2 \\ \hline
+        \hline
+        Quick   &       &   X   \\
+        The     &   X   &       \\
+        brown   &   X   &   X   \\
+        dog     &   X   &       \\
+        dogs    &       &   X   \\
+        fox     &   X   &       \\
+        foxes   &       &   X   \\
+        in      &       &   X   \\
+        jumped  &   X   &       \\
+        lazy    &   X   &   X   \\
+        leap    &       &   X   \\
+        over    &   X   &   X   \\
+        quick   &   X   &       \\
+        summer  &       &   X   \\
+        the     &   X   &       \\
+        \hline
+    \end{tabular}
+    \caption{Inverted index example \autocite{elasticsearch_iindex}}
+    \label{tab:iindex1}
+\end{table}
+
+To perform the query "quick brown" (with an or operator), only the rows with the search terms will be selected. This can be seen in table \ref{tab:iindex2}.
+
+\begin{table}
+    \centering
+    \begin{tabular}{ | l | c | c | }
+        \hline
+        Term    & Doc\_1 & Doc\_2 \\ \hline
+        \hline
+        brown   &   X   &   X   \\
+        quick   &   X   &       \\
+        \hline
+        Total   &   2   &   1   \\
+        \hline
+    \end{tabular}
+    \caption{Search in the inverted index \autocite{elasticsearch_iindex}}
+    \label{tab:iindex2}
+\end{table}
+
+\section{Analyzers and Inverted Indices}
+As can be seen in table \ref{tab:iindex1}, the data is quite sparse, meaning there are a lot of tokens that are only referenced in one of the documents. At the same time, there are redundancies, like "quick" and "Quick", which are the same word but with different capitalization. Similarly, "dog" and "dogs" as well as "fox" and "foxes" are just singular/plural pairs. Lastly, the words "jumped" and "leap" have a similar meaning and can also be merged into a single word.
+
+This is where analyzers come into play: The predefined "english" analyzer will merge those redundancies into a single token, as can be seen in table \ref{tab:iindex3}.
+
+\begin{table}
+    \centering
+    \begin{tabular}{ | l | c | c | }
+        \hline
+        Term    & Doc\_1 & Doc\_2 \\ \hline
+        \hline
+        brown   &   X   &  X  \\
+        dog     &   X   &  X  \\
+        fox     &   X   &  X  \\
+        in      &       &  X  \\
+        jump    &   X   &  X  \\
+        lazy    &   X   &  X  \\
+        over    &   X   &  X  \\
+        quick   &   X   &  X  \\
+        summer  &       &  X  \\
+        the     &   X   &  X  \\
+        \hline
+    \end{tabular}
+    \caption{Inverted index with analyzer \autocite{elasticsearch_iindex}}
+    \label{tab:iindex3}
+\end{table}
+
+This analysis must also be applied to the query; for example the word "quick" would not be found otherwise as it is not capitalized in the inverted index.

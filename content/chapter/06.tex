@@ -1,76 +1,156 @@
 \chapter{Implementation and Experience with the Database System}
 
-\section{Query Syntax}
+\section{Installation}
+The easiest way to use Elasticsearch is to use a hosted cloud instance. Providers like IBM \autocite{ibm}, Microsoft \autocite{microsoft}, Amazon \autocite{amazon} and others all provide hosted Elasticsearch instances.
+
+If you want to install it yourself, the easiest way is to use the prebuilt Docker image. When you have Docker installed on your machine, you can simply type
+\begin{minipage}[c]{0.95\textwidth}
+    \begin{lstlisting}
+docker run -d --name elasticsearch -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" elasticsearch:7.0.0
+    \end{lstlisting}
+\end{minipage}
+
+into the console to get a single Elasticsearch node up and running \autocite{dockerhub}.
+
+\section{CRUD Operations}
 Elasticsearch provides a comprehensive REST API to interact with the cluster \autocite{elastic2019_08}. This REST API can be used to manage the cluster itself, as well as to perform CRUD (Create, Read, Update, and Delete) operations and more complex search operations \autocite{elastic2019_08}. To define the queries Elasticsearch offers a full Query DSL (Domain Specific Language) based on JSON \autocite{elastic2019_08}.
 
 In the following, the syntax of the queries is shown using the basic CRUD operations as examples:
-
 
 \begin{minipage}[c]{0.95\textwidth}
     \textbf{Creating an index}
     (corresponds to a table in a relational databases)
     \begin{lstlisting}
-    PUT /test
-    {
-        "settings": {
-            "number_of_shards": 1
-        },
-        "mappings": {
-            "_doc": {
-                "properties": {
-                    "name": { "type": "text" }
-                }
+PUT /test
+{
+    "settings": {
+        "number_of_shards": 1
+    },
+    "mappings": {
+        "_doc": {
+            "properties": {
+                "name": { "type": "text" }
             }
         }
     }
+}
     \end{lstlisting}
 \end{minipage}
 
 \begin{minipage}[c]{0.95\textwidth}
     \textbf{Inserting a document}
     \begin{lstlisting}
-    PUT /test/_doc/1
-    {
-        "name": "Max"
-    }
+PUT /test/_doc/1
+{
+    "name": "Max"
+}
     \end{lstlisting}
 \end{minipage}
 
 \begin{minipage}[c]{0.95\textwidth}
     \textbf{Reading the document}
     \begin{lstlisting}
-    GET /test/_doc/1
+GET /test/_doc/1
     \end{lstlisting}
 \end{minipage}
 
 \begin{minipage}[c]{0.95\textwidth}
     \textbf{Updating the document}
     \begin{lstlisting}
-    POST /test/_doc/1/_update
-    {
-        "doc": { "name": "Moritz" }
-    }
+POST /test/_doc/1/_update
+{
+    "doc": { "name": "Moritz" }
+}
     \end{lstlisting}
 \end{minipage}
 
 \begin{minipage}[c]{0.95\textwidth}
     \textbf{Deleting the document}
     \begin{lstlisting}
-    DELETE /test/_doc/1
+DELETE /test/_doc/1
     \end{lstlisting}
 \end{minipage}
 
-The examples above illustrate how the REST API is using the different HTTP methods but the used JSON is rather simple. The following gives a example, showing a more complex search query:
+
+\section{Query Syntax}
 
 \begin{minipage}[c]{0.95\textwidth}
+    \textbf{Basic query}
     \begin{lstlisting}
-    GET /person/_search
-    {
-        "query": { "match": { "sex": "male" } },
-        "sort": [{ "name": "desc" }],
-        "_source": ["name", "age"]
-    }
+GET /person/_search
+{
+    "query": { "match": { "sex": "male" } },
+    "sort": [{ "name": "desc" }],
+    "_source": ["name", "age"]
+}
     \end{lstlisting}
 \end{minipage}
 
-This query searches all documents in an index called “person”. It returns the fields “name” and “age” of all documents where “sex” equals “male” ordered descending by the field “name”.
+This query searches all documents in an index called \texttt{person}. It returns the fields \texttt{name} and \texttt{age} of all documents where \texttt{sex} equals \texttt{male} ordered descending by the field \texttt{name}.
+
+\bigskip
+
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{\texttt{or} Operator}
+    \begin{lstlisting}
+GET /wiki/_search
+{
+    "query": {
+        "match": {
+            "abstract": {
+                "query": "database search",
+                "operator": "or"
+            }
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
+
+This query is a slightly more advanced query, as it returns all documents, whose \texttt{abstract} field contains the words \texttt{database} or \texttt{search} (inclusive or).
+
+\bigskip
+
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Fuzzy search}
+    \begin{lstlisting}
+GET /wiki/_search
+{
+    "query": {
+        "match": {
+            "title": {
+                "query": "Elasticsearcch",
+                "fuzziness": "AUTO"
+            }
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
+
+Fuzzy searching will instruct Elasticsearch to also match similar words in the query. In this example, Elasticsearch is accidentally written with two 'c', however, Elasticsearch will also return the document with the title \texttt{Elasticsearch}.
+
+\bigskip
+
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Wildcards}
+    \begin{lstlisting}
+GET /wiki/_search
+{
+    "query": {
+        "wildcard": {
+            "title": "m*db"
+        }
+    }
+}
+    \end{lstlisting}
+\end{minipage}
+
+In this case, the query will find all documents, whose \texttt{title} field starts with \texttt{m} and ends with \texttt{db}. In between these can be an arbitrary amount of characters, as denoted by the star. Use a question mark to only match a single character.
+
+There are many and more complex queries possible in Elasticsearch, however, for the brevity of this e-book they are not included here. A much more detailed explanation for each query can be found in the Elasticsearch API Reference.
+
+\section{Experiences}
+Our experiences with Elasticsearch have been good overall. Due to having a simple REST API, the database can be accessed from almost every programming language. For most languages, though, there is an official library, simplifying the use even more.
+
+Due to the tight integration with the Elastic Stack, other use-cases like logging/monitoring and data visualization are also easily realizable.
