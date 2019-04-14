@@ -1,24 +1,76 @@
 \chapter{Implementation and Experience with the Database System}
 
 \section{Query Syntax}
-Elasticsearch provides a comprehensive REST API to interact with the cluster. This REST API can be used to manage the cluster itself, as well as to perform CRUD (Create, Read, Update, and Delete) operations and more complex search operations. To define the queries Elasticsearch offers a full Query DSL (Domain Specific Language) based on JSON [1].
+Elasticsearch provides a comprehensive REST API to interact with the cluster \autocite{elastic2019_08}. This REST API can be used to manage the cluster itself, as well as to perform CRUD (Create, Read, Update, and Delete) operations and more complex search operations \autocite{elastic2019_08}. To define the queries Elasticsearch offers a full Query DSL (Domain Specific Language) based on JSON \autocite{elastic2019_08}.
 
 In the following, the syntax of the queries is shown using the basic CRUD operations as examples:
 
-\subsection*{Creating an index}
-(corresponds to a table in a relational databases)
-% TODO: Image
 
-\subsection*{Inserting a document}
-% TODO: Image
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Creating an index}
+    (corresponds to a table in a relational databases)
+    \begin{lstlisting}
+    PUT /test
+    {
+        "settings": {
+            "number_of_shards": 1
+        },
+        "mappings": {
+            "_doc": {
+                "properties": {
+                    "name": { "type": "text" }
+                }
+            }
+        }
+    }
+    \end{lstlisting}
+\end{minipage}
 
-\subsection*{Reading the document}
-% TODO: Image
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Inserting a document}
+    \begin{lstlisting}
+    PUT /test/_doc/1
+    {
+        "name": "Max"
+    }
+    \end{lstlisting}
+\end{minipage}
 
-\subsection*{Updating the document}
-% TODO: Image
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Reading the document}
+    \begin{lstlisting}
+    GET /test/_doc/1
+    \end{lstlisting}
+\end{minipage}
 
-\subsection*{Deleting the document}
-% TODO: Image
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Updating the document}
+    \begin{lstlisting}
+    POST /test/_doc/1/_update
+    {
+        "doc": { "name": "Moritz" }
+    }
+    \end{lstlisting}
+\end{minipage}
+
+\begin{minipage}[c]{0.95\textwidth}
+    \textbf{Deleting the document}
+    \begin{lstlisting}
+    DELETE /test/_doc/1
+    \end{lstlisting}
+\end{minipage}
 
 The examples above illustrate how the REST API is using the different HTTP methods but the used JSON is rather simple. The following gives a example, showing a more complex search query:
+
+\begin{minipage}[c]{0.95\textwidth}
+    \begin{lstlisting}
+    GET /person/_search
+    {
+        "query": { "match": { "sex": "male" } },
+        "sort": [{ "name": "desc" }],
+        "_source": ["name", "age"]
+    }
+    \end{lstlisting}
+\end{minipage}
+
+This query searches all documents in an index called “person”. It returns the fields “name” and “age” of all documents where “sex” equals “male” ordered descending by the field “name”.

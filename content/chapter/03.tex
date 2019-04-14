@@ -1,16 +1,19 @@
 \chapter{Apache Lucene}
 
-Apache Lucene is an open source full-text search engine library based on Java [1]. It provides several Application Programming Interfaces for search functions such as indexing, querying or language analysis [1].
+This chapter is based on information from the paper written by \autocite{bialeckia.2012} unless differently cited.
 
-The Lucene project was started in 1997 by Doug Cutting and donated to The Apache Software Foundation (ASF) in 2001 [1]. Today it is maintained by several contributors and committers of the ASF, who are being paid by their respective employers to work on Lucene [1]
+Apache Lucene is an open source full-text search engine library based on Java. It provides several Application Programming Interfaces for search functions such as indexing, querying or language analysis. 
 
-Lucene consists of four main features - the analysis of incoming content and queries, indexing and storage, searching and additional modules [1]. The Lucene core includes the first three features, while the fourth contains useful code libraries for solving typical search-related problems such as result highlighting [1].
+The Lucene project was started in 1997 by Doug Cutting and donated to The Apache Software Foundation (ASF) in 2001. Today it is maintained by several contributors and committers of the ASF, who are being paid by their respective employers to work on Lucene.
 
-The analysis component of Lucene is responsible for converting incoming documents or search queries into an appropriate internal representation [1]. Therefore the data is filtered, normalized and tokenized before the created tokens are inserted into the search index [1].
+Lucene consists of four main features - the analysis of incoming content and queries, indexing and storage, searching and additional modules. The Lucene core includes the first three features, while the fourth contains useful code libraries for solving typical search-related problems such as result highlighting.
 
-Lucene uses a so called inverted index, which means that it maps keywords to pages instead of mapping pages to keywords [2]. This method can be compared to a glossary at the end of a book and allows for faster search responses as it searches through the keyword index, instead of through the complete documents [2].
+The analysis component of Lucene is responsible for converting incoming documents or search queries into an appropriate internal representation. Therefore the data is filtered, normalized and tokenized before the created tokens are inserted into the search index. 
 
-The database allows to index and store user defined documents, where a document is a collection of fields and each field has a value assigned to it [1, 2]. A document can consist of plain text as well as being a database or a collection [2]. 
-Data can be queried using multiple query representations [1]. Detailed information and examples on some of these query options will be given in chapter 6.1.
+Lucene uses a so called inverted index, which means that it maps keywords to pages instead of mapping pages to keywords \autocite{baeldung2018}. This method can be compared to a glossary at the end of a book and allows for faster search responses as it searches through the keyword index, instead of through the complete documents \autocite{baeldung2018}. 
 
-Apache Lucene is the search engine library used by Elasticsearch to provide a scalable, high-performance full-text indexing and searching [3].
+The database allows to index and store user defined documents, where a document is a collection of fields and each field has a value assigned to it \autocite{baeldung2018}. A document can consist of plain text as well as being a database or a collection \autocite{baeldung2018}. 
+
+Data can be queried using multiple query representations. Detailed information and examples on some of these query options will be given in a following chapter.    
+
+Apache Lucene is the search engine library used by Elasticsearch to provide a scalable, high-performance full-text indexing and searching \autocite{tank.2019}.
