@@ -2,8 +2,8 @@
 
 To efficiently implement full-text search, a technique called “inverted index” is used. In Elasticsearch, there are two key components used to implement this technique:
 \begin{itemize}
-    \item The inverted index itself
     \item Analyzers
+    \item The inverted index itself
 \end{itemize}
 
 \section{Analyzers}
@@ -139,4 +139,4 @@ This is where analyzers come into play: The predefined "english" analyzer will m
     \label{tab:iindex3}
 \end{table}
 
-This analysis must also be applied to the query; for example the word "quick" would not be found otherwise as it is not capitalized in the inverted index.
+This analysis must also be applied to the query; for example the word "Quick" would not be found otherwise as it is not capitalized in the inverted index.
